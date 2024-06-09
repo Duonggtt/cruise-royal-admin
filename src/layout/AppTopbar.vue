@@ -18,7 +18,7 @@ onBeforeUnmount(() => {
 });
 
 const logoUrl = computed(() => {
-    return `/layout/images/${layoutConfig.darkTheme.value ? 'logo-white' : 'logo-dark'}.svg`;
+    return `/Logo-Cruise-Royal.svg`;
 });
 
 const onTopBarMenuButton = () => {
@@ -62,9 +62,9 @@ const isOutsideClicked = (event) => {
 
 <template>
     <div class="layout-topbar">
-        <router-link to="/" class="layout-topbar-logo">
+        <router-link to="/home" class="layout-topbar-logo">
             <img :src="logoUrl" alt="logo" />
-            <span>SAKAI</span>
+            <span class="text-gray-700 font-semibold text-2xl">CR-Admin</span>
         </router-link>
 
         <button class="p-link layout-menu-button layout-topbar-button" @click="onMenuToggle()">
