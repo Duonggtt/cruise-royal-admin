@@ -79,7 +79,7 @@
                         <InputText v-model="userDetail.phone" id="phone" type="text" />
                     </div>
                 </div>
-                <Button type="submit" label="Sửa" severity="info" icon="pi pi-pencil"/>
+                <Button type="submit" label="Sửa" severity="info" icon="pi pi-pencil" @click="updateUser(userDetail.id)"/>
             </div>
         </div>
     </div>
@@ -211,6 +211,9 @@ export default {
         this.fetchRoles();
     },
     methods: {
+        updateUser(userId: any) {
+            
+        },
         fetchUserDetail(userId: number) {
             // const toast = useToast();
             this.changeState('update');
