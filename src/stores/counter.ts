@@ -40,6 +40,7 @@ export const useAuthStore = defineStore({
                   },
               });
 
+              alert('Phiên đăng nhập hết hạn!');
               return false;
           }
 
@@ -115,9 +116,6 @@ export const useAuthStore = defineStore({
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           router.push('/auth/login').then(r => r);
-          // setTimeout(() => {
-          //     router.push('/').then(r => r);
-          // }, 500);
       },
   },
 });
