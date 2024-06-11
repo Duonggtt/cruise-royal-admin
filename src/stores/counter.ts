@@ -7,6 +7,7 @@ interface AuthState {
   access_token: string | null;
   refresh_token: string | null;
   isAdminOrEmployee: boolean | null;
+  role: string | null;
   returnUrl: string;
 }
 
@@ -18,6 +19,7 @@ export const useAuthStore = defineStore({
       access_token: localStorage.getItem('access_token') || null,
       refresh_token: localStorage.getItem('refresh_token') || null,
       isAdminOrEmployee: localStorage.getItem('isAdminOrEmployee') === "true" || false,
+      role: localStorage.getItem('role') || null,
       returnUrl: '/home',
   }),
   actions: {
@@ -47,7 +49,7 @@ export const useAuthStore = defineStore({
           }
 
           if (response.status === 200) {
-              const {access_token, refresh_token, isAdminOrEmployee} = await response.json();
+              const {access_token, refresh_token, isAdminOrEmployee, role} = await response.json();
               localStorage.setItem('isAdminOrEmployee', isAdminOrEmployee);
               if(isAdminOrEmployee === "false") {
                 return false;
@@ -55,10 +57,12 @@ export const useAuthStore = defineStore({
                 localStorage.setItem('user', username);
                 localStorage.setItem('access_token', access_token);
                 localStorage.setItem('refresh_token', refresh_token);
+                localStorage.setItem('role', role);
                 this.user = username;
                 this.access_token = access_token;
                 this.refresh_token = refresh_token;
                 this.isAdminOrEmployee = isAdminOrEmployee;
+                this.role = role;
                 // Get the stored URL
                 const redirectUrl = localStorage.getItem('redirectUrl');
                 // Remove the stored URL

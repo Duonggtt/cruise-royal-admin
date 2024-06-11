@@ -71,7 +71,7 @@
                         <label for="email">Email</label>
                         <InputText v-model="userDetail.email" id="email" type="text" />
                     </div>
-                    <div class="field col-12 md:col-3">
+                    <div v-if="isAdmin" class="field col-12 md:col-3">
                         <label for="role">Vai trò</label>
                         <Dropdown id="role" v-model="userDetail.roleIds[0]" :options="formattedRoles" optionValue="id" optionLabel="name" placeholder="Chọn vai trò"></Dropdown>
                     </div>
@@ -164,6 +164,9 @@ export default {
         }
     },
     computed: {
+        isAdmin() {
+            return useAuthStore().isAdmin;
+        },
         formattedRoles() {
             return this.roles.map((rl: { id:any, name: any; }) => {
                 let name = rl.name;
