@@ -6,6 +6,7 @@ interface AuthState {
   user: string | null;
   access_token: string | null;
   refresh_token: string | null;
+  isAdminOrEmployee: boolean | null;
   returnUrl: string;
 }
 
@@ -16,6 +17,7 @@ export const useAuthStore = defineStore({
       user: localStorage.getItem('user') || null,
       access_token: localStorage.getItem('access_token') || null,
       refresh_token: localStorage.getItem('refresh_token') || null,
+      isAdminOrEmployee: localStorage.getItem('isAdminOrEmployee') === "true" || false,
       returnUrl: '/home',
   }),
   actions: {
@@ -45,24 +47,29 @@ export const useAuthStore = defineStore({
           }
 
           if (response.status === 200) {
-              const {access_token, refresh_token} = await response.json();
-              localStorage.setItem('user', username);
-              localStorage.setItem('access_token', access_token);
-              localStorage.setItem('refresh_token', refresh_token);
-              this.user = username;
-              this.access_token = access_token;
-              this.refresh_token = refresh_token;
-
-              // Get the stored URL
-              const redirectUrl = localStorage.getItem('redirectUrl');
-              // Remove the stored URL
-              localStorage.removeItem('redirectUrl');
-              // Redirect to the stored URL if it exists, otherwise to the default returnUrl
-              setTimeout(async () => {
-                  // Redirect to the stored URL if it exists, otherwise to the default returnUrl
-                  await router.push(redirectUrl || this.returnUrl);
-              }, 1500);
-              return true;
+              const {access_token, refresh_token, isAdminOrEmployee} = await response.json();
+              localStorage.setItem('isAdminOrEmployee', isAdminOrEmployee);
+              if(isAdminOrEmployee === "false") {
+                return false;
+              }else {
+                localStorage.setItem('user', username);
+                localStorage.setItem('access_token', access_token);
+                localStorage.setItem('refresh_token', refresh_token);
+                this.user = username;
+                this.access_token = access_token;
+                this.refresh_token = refresh_token;
+                this.isAdminOrEmployee = isAdminOrEmployee;
+                // Get the stored URL
+                const redirectUrl = localStorage.getItem('redirectUrl');
+                // Remove the stored URL
+                localStorage.removeItem('redirectUrl');
+                // Redirect to the stored URL if it exists, otherwise to the default returnUrl
+                setTimeout(async () => {
+                    // Redirect to the stored URL if it exists, otherwise to the default returnUrl
+                    await router.push(redirectUrl || this.returnUrl);
+                }, 1500);
+                return true;
+              }
           }
       },
 

@@ -27,15 +27,21 @@ import Dropdown from 'primevue/dropdown';
 import Dialog from 'primevue/dialog';
 import ConfirmPopup from 'primevue/confirmpopup';
 import ConfirmationService from 'primevue/confirmationservice';
-
-
+import toastr from 'toastr';
+import 'toastr/build/toastr.min.css';
+declare module '@vue/runtime-core' {
+    interface ComponentCustomProperties {
+      $toastr: typeof toastr;
+    }
+  }
 const app = createApp(App)
-
+app.config.globalProperties.$toastr = toastr;
 app.use(createPinia())
 app.use(router)
 app.use(PrimeVue, {ripple: true})
 app.use(ToastService);
 app.use(ConfirmationService);
+
 
 app.component('InputText', InputText)
 app.component('Password', Password)

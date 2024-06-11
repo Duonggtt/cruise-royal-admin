@@ -1,5 +1,8 @@
 <template>
     <div>
-        <h1 class="text-2xl font-sans font-bold">Dashboard</h1>
+        <div class="pb-4">
+            <span class="flex font-semibold text-3xl pb-3">Dashboard</span>
+            <!-- <Breadcrumb :home="home" :model="items" /> -->
+        </div>
     </div>
 </template>

@@ -26,7 +26,13 @@ const user = reactive({
                 if(res) {
                     toast.add({ severity: 'success', summary: 'Authentication', detail: `Chào mừng ${user.username} quay lại!`, life: 3000 });
                 }else {
-                    toast.add({ severity: 'error', summary: 'Authentication', detail: 'Username hoặc password không đúng!', life: 3000 });
+                    const isAdminOrEmployee = localStorage.getItem('isAdminOrEmployee');
+                    if(isAdminOrEmployee === 'false') {
+                        toast.add({ severity: 'error', summary: 'Authorization', detail: 'Không có quyền truy cập!', life: 3000 });
+                        localStorage.removeItem('isAdminOrEmployee');
+                    }else {
+                        toast.add({ severity: 'error', summary: 'Authentication', detail: 'Username hoặc password không đúng!', life: 3000 });
+                    }
                 }
             })
         }else {

@@ -1,5 +1,6 @@
 
 <template>
+    <Toast/>
     <div v-if="state === 'default'">
         <div class="pb-4">
             <span class="flex font-semibold text-3xl pb-3">Danh sách người dùng</span>
@@ -60,7 +61,7 @@
                     </div>
                     <div class="field col-12 md:col-6">
                         <label for="password">Mật khẩu</label>
-                        <InputText disabled v-model="userDetail.password" id="password" type="password" />
+                        <InputText disabled v-model="userDetail.password" id="password" type="password" placeholder="đã mã hóa"/>
                     </div>
                     <div class="field col-12">
                         <label for="address">Địa chỉ</label>
@@ -72,7 +73,7 @@
                     </div>
                     <div class="field col-12 md:col-3">
                         <label for="role">Vai trò</label>
-                        <Dropdown id="role" v-model="role.name" :options="formattedRoles" optionLabel="name" placeholder="Chọn vai trò"></Dropdown>
+                        <Dropdown id="role" v-model="userDetail.roleIds[0]" :options="formattedRoles" optionValue="id" optionLabel="name" placeholder="Chọn vai trò"></Dropdown>
                     </div>
                     <div class="field col-12 md:col-3">
                         <label for="phone">Số điện thoại</label>
@@ -101,38 +102,37 @@
                     </div>
                     <div class="field col-12 md:col-6">
                         <label for="namecr">Họ tên</label>
-                        <InputText id="namecr" type="text" />
+                        <InputText v-model="userNew.name" id="namecr" type="text" />
                     </div>
                     <div class="field col-12 md:col-6">
                         <label for="usernamecr">Tên đăng nhập</label>
-                        <InputText id="usernamecr" type="text" />
+                        <InputText v-model="userNew.username" id="usernamecr" type="text"/>
                     </div>
                     <div class="field col-12 md:col-6">
                         <label for="passwordcr">Mật khẩu</label>
-                        <InputText id="passwordcr" type="password" />
+                        <InputText v-model="userNew.password" id="passwordcr" type="password"/>
                     </div>
                     <div class="field col-12">
                         <label for="addresscr">Địa chỉ</label>
-                        <Textarea id="addresscr" rows="4" />
+                        <Textarea v-model="userNew.address" id="addresscr" rows="4" />
                     </div>
                     <div class="field col-12 md:col-6">
                         <label for="emailcr">Email</label>
-                        <InputText id="emailcr" type="text" />
+                        <InputText v-model="userNew.email" id="emailcr" type="text" />
                     </div>
                     <div class="field col-12 md:col-3">
                         <label for="rolecr">Vai trò</label>
-                        <Dropdown id="rolecr" v-model="role" :options="formattedRoles" optionLabel="name" placeholder="Select role"></Dropdown>
+                        <Dropdown id="rolecr" v-model="userNew.roleIds[0]" :options="formattedRoles"  optionValue="id" optionLabel="name" placeholder="Select role"></Dropdown>
                     </div>
                     <div class="field col-12 md:col-3">
                         <label for="phonecr">Số điện thoại</label>
-                        <InputText id="phonecr" type="text" />
+                        <InputText v-model="userNew.phone" id="phonecr" type="text" />
                     </div>
                 </div>
-                <Button type="submit" label="Thêm mới" severity="info" icon="pi pi-plus"/>
+                <Button type="submit" label="Thêm mới" severity="info" icon="pi pi-plus" @click="createUser()"/>
             </div>
         </div>
     </div>
-    <Toast/>
 </template>
 
 <script lang="ts" >
@@ -142,9 +142,14 @@ import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 
-interface Role {
-  id: number;
+interface UserNew {
   name: string;
+  username: string;
+  password: string;
+  address: string;
+  email: string;
+  roleIds: number[]; 
+  phone: string;
 }
 
 export default {
@@ -160,17 +165,17 @@ export default {
     },
     computed: {
         formattedRoles() {
-            return this.roles.map((rl: { name: any; }) => {
+            return this.roles.map((rl: { id:any, name: any; }) => {
                 let name = rl.name;
                 switch(rl.name) {
                 case 'ROLE_USER':
                     name = 'Khách hàng';
                     break;
-                case 'ROLE_MANAGER':
-                    name = 'Quản lý';
+                case 'ROLE_EMPLOYEE':
+                    name = 'Nhân viên';
                     break;
                 case 'ROLE_ADMIN':
-                    name = 'Quản trị viên';
+                    name = 'Quản lý';
                     break;
                 }
                 return { ...rl, name };
@@ -184,10 +189,7 @@ export default {
                 { label: 'Người dùng' }, 
             ]),
             roles: [],
-            role: {
-                id:'',
-                name:''
-            },
+            role: {id:'',name:''},
             home: ref({
                 icon: 'pi pi-home'
             }),
@@ -200,9 +202,18 @@ export default {
                 password: '',
                 address: '',
                 email: '',
-                roles: [],
+                roleIds: [],
                 phone: ''
             },
+            userNew: {
+                name: '',
+                username: '',
+                password: '',
+                address: '',
+                email: '',
+                roleIds: [],
+                phone: ''
+            } as UserNew,
             userDetailId: 0
         };
     },
@@ -211,15 +222,105 @@ export default {
         this.fetchRoles();
     },
     methods: {
+        areRequiredFieldsEmpty(): boolean{
+            const requiredFields: (keyof UserNew)[] = ['name', 'username', 'password', 'address', 'email', 'phone'];
+            return requiredFields.some((field) => !this.userNew[field]);
+        },
+        createUser() {
+            if (this.areRequiredFieldsEmpty()) {
+                this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Vui lòng điền đầy đủ thông tin!', life: 3000 });
+                return;
+            }
+            console.log(this.userNew);
+            const access_token = localStorage.getItem('access_token');
+            const url = `http://localhost:8080/api/auth/user/create`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                },
+                body: JSON.stringify(this.userNew)
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 200) {
+                    this.$toast.add({ severity: 'success', summary: 'Thao tác', detail: 'Tạo người dùng thành công!', life: 3000 });
+                    setTimeout(() => {
+                        this.userNew = {
+                            name: '',
+                            username: '',
+                            password: '',
+                            address: '',
+                            email: '',
+                            roleIds: [],
+                            phone: ''
+                        };
+                        this.changeState('default');
+                        this.fetchUsers();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                console.log(this.userDetail)
+                // router.replace("/");
+                this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Lỗi khi tạo người dùng!', life: 3000 });
+                console.log("Error creating user!", error);
+            });
+        },
         updateUser(userId: any) {
-            
+            const access_token = localStorage.getItem('access_token');
+            // const toast = useToast();
+            const url = `http://localhost:8080/api/auth/user/update/${userId}`;
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                },
+                body: JSON.stringify(this.userDetail)
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => {
+                console.log("response: ", this.userDetail)
+                if(res.status === 200) {
+                    this.$toast.add({ severity: 'success', summary: 'Thao tác', detail: 'Sửa thông tin thành công', life: 3000 });
+                    // toast.add({ severity: 'success', summary: 'Update', detail: `Sửa thông tin thành công`, life: 3000 });
+                    setTimeout(() => {
+                        this.changeState('default');
+                        this.fetchUsers();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                console.log(this.userDetail)
+                // router.replace("/");
+                this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Lỗi khi sửa thông tin!', life: 3000 });
+                console.log("Error updating user!", error);
+            });
         },
         fetchUserDetail(userId: number) {
             // const toast = useToast();
             this.changeState('update');
             this.userDetailId = userId;
             const access_token = localStorage.getItem('access_token');
-            const url = `http://localhost:8080/api/user/${userId}`;
+            const url = `http://localhost:8080/api/user/detail/${userId}`;
             fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${access_token}` // Use the token here
@@ -228,6 +329,7 @@ export default {
             .then(res => {
                 // If the token has expired
                if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
                 //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
                  useAuthStore().logout();
                }
@@ -236,8 +338,7 @@ export default {
             .then(res => res.json())
             .then(data => {
                 this.userDetail = data;  
-                const adminRole: Role | undefined = data.roles.find((role: Role) => role.name === 'ROLE_ADMIN');
-                this.role = adminRole ? adminRole : data.roles[0];
+                this.role = data.roleIds[0];
                 console.log("role: ",this.role)
                 console.log("User detail:",this.userDetail);
             })
@@ -258,7 +359,7 @@ export default {
             .then(res => {
                 // If the token has expired
                if (res.status === 403) {
-                 toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
                  useAuthStore().logout();
                }
                 return res;
@@ -277,26 +378,52 @@ export default {
         confirm2(event: any, userId: number) {
             this.confirm.require({
                 target: event.currentTarget,
-                message: 'Do you want to delete this record?',
+                message: 'Bạn có chắc muốn xóa không?',
                 icon: 'pi pi-info-circle',
                 rejectClass: 'p-button-secondary p-button-outlined p-button-sm',
                 acceptClass: 'p-button-danger p-button-sm',
                 rejectLabel: 'Cancel',
                 acceptLabel: 'Delete',
                 accept: () => {
-                    this.$toast.add({ severity: 'info', summary: 'Confirmed', detail: 'Record deleted', life: 3000 });
-                    console.log('Deleting user', userId);
+                    this.removeUser(userId);
                 },
                 reject: () => {
-                    this.$toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 });
+                    this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Đã hủy xóa!', life: 3000 });
                 }
             });
         },
         changeState(newState: string) {
             this.state = newState;
         },
+        removeUser(userId: number) {
+            const access_token = localStorage.getItem('access_token');
+            const url = `http://localhost:8080/api/auth/user/${userId}`;
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${access_token}` // Use the token here
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 200) {
+                    this.$toast.add({ severity: 'info', summary: 'Thao tác', detail: 'Xóa thành công!', life: 3000 });
+                    setTimeout(() => {
+                        this.fetchUsers();
+                    }, 1500);
+                }
+            })
+        },
         fetchUsers() {
-            const toast = useToast();
+            // const toast = useToast();
             const access_token = localStorage.getItem('access_token');
             const url = `http://localhost:8080/api/users`;
             fetch(url, {
@@ -307,7 +434,8 @@ export default {
             .then(res => {
                 // If the token has expired
                if (res.status === 403) {
-                 toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
                  useAuthStore().logout();
                }
                 return res;
