@@ -11,67 +11,36 @@ const model = ref([
     {
         label: 'Quản lý người dùng',
         items: [
-            { label: 'Danh sách người dùng', icon: 'pi pi-fw pi-user', to: '/users' }
+            { label: 'Người dùng', icon: 'pi pi-fw pi-user', to: '/users' }
         ]
     },
     {
         label: 'Quản lý du thuyền',
         items: [
-            { label: 'Du thuyền', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
-            { label: 'Phòng ngủ', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
-            { label: 'Danh mục', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
-            { label: 'Danh sách phòng', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
+            { label: 'Du thuyền', icon: 'pi pi-prime', to: '/cruises' },
+            { label: 'Phòng ngủ', icon: 'pi pi-slack', to: '/cabins' },
+            { label: 'Danh mục', icon: 'pi pi-bookmark', to: '/tags' },
+            { label: 'Bài viết', icon: 'pi pi-th-large', to: '/sections' },
+            { label: 'Luật lệ', icon: 'pi pi-book', to: '/rules' },
+        ]
+    },
+    {
+        label: 'Quản lý địa điểm',
+        items: [
+            { label: 'Lộ trình', icon: 'pi pi-map', to: '/locations' },
+        ]
+    },
+    {
+        label: 'Quản lý chủ sở hữu',
+        items: [
+            { label: 'Các chủ sở hữu', icon: 'pi pi-fw pi-users', to: '/owners' },
         ]
     },
     {
         label: 'Quản lý đặt vé',
         items: [
-            { label: 'Danh sách đơn đặt', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
-            { label: 'Thêm mới ...', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' }
-        ]
-    },
-    {
-        label: 'Quản lý cái khác...',
-        items: [
-            {
-                label: 'Submenu 1',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 1.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 1.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.2', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.3', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 1.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 1.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            },
-            {
-                label: 'Submenu 2',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 2.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 2.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 2.1.2', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 2.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 2.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            }
+            { label: 'Đơn đặt', icon: 'pi pi-fw pi-cart-plus', to: '/bookings' },
+            { label: 'Lịch sử', icon: 'pi pi-fw pi-history', to: '/historys' }
         ]
     },
 ]);

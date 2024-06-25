@@ -37,7 +37,7 @@ const user = reactive({
             })
         }else {
             toast.add({ severity: 'error', summary: 'Authentication', detail: 'Vui lòng nhập username và password!', life: 3000 });
-        }
+        }   
     }
 
 </script>

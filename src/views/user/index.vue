@@ -9,12 +9,17 @@
         
         <div class="card">
             <div class="flex justify-content-between">
-                <div>
-                    <Button label="Thêm mới" severity="info" icon="pi pi-plus" @click="changeState('create')"/>
+                <div class="flex gap-2">
+                    <span>
+                        <Button label="Thêm mới" severity="info" icon="pi pi-plus" @click="changeState('create')"/>
+                    </span>
+                    <span>
+                        <Button label="Refresh" severity="info" icon="pi pi-refresh" @click="resetData()"/>
+                    </span>
                 </div>
                 <IconField iconPosition="left">
-                    <InputIcon class="pi pi-search cursor-pointer"> </InputIcon>
-                    <InputText placeholder="Search" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="searchByPhone"></InputIcon>
+                    <InputText placeholder="Nhập số điện thoại..." v-model="searchPhone" />
                 </IconField>
             </div>
             <hr>
@@ -75,7 +80,11 @@
                         <label for="role">Vai trò</label>
                         <Dropdown id="role" v-model="userDetail.roleIds[0]" :options="formattedRoles" optionValue="id" optionLabel="name" placeholder="Chọn vai trò"></Dropdown>
                     </div>
-                    <div class="field col-12 md:col-3">
+                    <div v-if="isAdmin" class="field col-12 md:col-3">
+                        <label for="phone">Số điện thoại</label>
+                        <InputText v-model="userDetail.phone" id="phone" type="text" />
+                    </div>
+                    <div v-else class="field col-12 md:col-6">
                         <label for="phone">Số điện thoại</label>
                         <InputText v-model="userDetail.phone" id="phone" type="text" />
                     </div>
@@ -120,11 +129,15 @@
                         <label for="emailcr">Email</label>
                         <InputText v-model="userNew.email" id="emailcr" type="text" />
                     </div>
-                    <div class="field col-12 md:col-3">
+                    <div v-if="isAdmin" class="field col-12 md:col-3">
                         <label for="rolecr">Vai trò</label>
                         <Dropdown id="rolecr" v-model="userNew.roleIds[0]" :options="formattedRoles"  optionValue="id" optionLabel="name" placeholder="Select role"></Dropdown>
                     </div>
-                    <div class="field col-12 md:col-3">
+                    <div v-if="isAdmin" class="field col-12 md:col-3">
+                        <label for="phonecr">Số điện thoại</label>
+                        <InputText v-model="userNew.phone" id="phonecr" type="text" />
+                    </div>
+                    <div v-else class="field col-12 md:col-6">
                         <label for="phonecr">Số điện thoại</label>
                         <InputText v-model="userNew.phone" id="phonecr" type="text" />
                     </div>
@@ -141,6 +154,9 @@ import {useAuthStore} from '@/stores/counter';
 import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
 import { useConfirm } from "primevue/useconfirm";
+import { API_URL } from '@/stores/config'; 
+
+const api_url = API_URL;
 
 interface UserNew {
   name: string;
@@ -159,7 +175,7 @@ export default {
         // ...
 
         return {
-        confirm,
+            confirm,
         // ...
         }
     },
@@ -187,6 +203,7 @@ export default {
     },
     data() {
         return {
+            searchPhone: '',
             items: ref([
                 { label: 'Quản lý người dùng' }, 
                 { label: 'Người dùng' }, 
@@ -225,6 +242,46 @@ export default {
         this.fetchRoles();
     },
     methods: {
+        resetData() {
+            this.searchPhone = '';
+            this.fetchUsers();
+        },
+        searchByPhone() {
+            // this.users = this.users.filter((user: { phone: string; }) => user.phone.includes(this.searchPhone));
+            // return this.users;
+
+            if(this.searchPhone === '') {
+                this.$toast.add({ severity: 'warn', summary: 'Tìm kiếm', detail: 'Vui lòng nhập số điện thoại !', life: 3000 });
+                return;
+            }
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/user/search-by-phone?phone=${this.searchPhone}`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                },
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.users = [];
+                this.users.push(data);
+                return this.users;
+            })
+            .catch(error => {
+                // router.replace("/");
+                this.$toast.add({ severity: 'error', summary: 'Tìm kiếm', detail: 'Không tìm thấy người dùng!', life: 3000 });
+                console.log("Error searching user!", error);
+            });
+        },
         areRequiredFieldsEmpty(): boolean{
             const requiredFields: (keyof UserNew)[] = ['name', 'username', 'password', 'address', 'email', 'phone'];
             return requiredFields.some((field) => !this.userNew[field]);
@@ -236,7 +293,7 @@ export default {
             }
             console.log(this.userNew);
             const access_token = localStorage.getItem('access_token');
-            const url = `http://localhost:8080/api/auth/user/create`;
+            const url = `${api_url}/auth/user/create`;
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -282,7 +339,7 @@ export default {
         updateUser(userId: any) {
             const access_token = localStorage.getItem('access_token');
             // const toast = useToast();
-            const url = `http://localhost:8080/api/auth/user/update/${userId}`;
+            const url = `${api_url}/auth/user/update/${userId}`;
             fetch(url, {
                 method: 'PUT',
                 headers: {
@@ -323,7 +380,7 @@ export default {
             this.changeState('update');
             this.userDetailId = userId;
             const access_token = localStorage.getItem('access_token');
-            const url = `http://localhost:8080/api/user/detail/${userId}`;
+            const url = `${api_url}/user/detail/${userId}`;
             fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${access_token}` // Use the token here
@@ -353,7 +410,7 @@ export default {
         fetchRoles() {
             const toast = useToast();
             const access_token = localStorage.getItem('access_token');
-            const url = `http://localhost:8080/api/roles`;
+            const url = `${api_url}/roles`;
             fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${access_token}` // Use the token here
@@ -400,7 +457,7 @@ export default {
         },
         removeUser(userId: number) {
             const access_token = localStorage.getItem('access_token');
-            const url = `http://localhost:8080/api/auth/user/${userId}`;
+            const url = `${api_url}/auth/user/${userId}`;
             fetch(url, {
                 method: 'DELETE',
                 headers: {
@@ -417,6 +474,9 @@ export default {
                 return res;
             })
             .then(res => {
+                if(res.status === 500) {
+                    this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Người dùng này đang sử dụng dịch vụ, Không thể xóa!', life: 3000 });
+                }
                 if(res.status === 200) {
                     this.$toast.add({ severity: 'info', summary: 'Thao tác', detail: 'Xóa thành công!', life: 3000 });
                     setTimeout(() => {
@@ -428,7 +488,7 @@ export default {
         fetchUsers() {
             // const toast = useToast();
             const access_token = localStorage.getItem('access_token');
-            const url = `http://localhost:8080/api/users`;
+            const url = `${api_url}/users`;
             fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${access_token}` // Use the token here
