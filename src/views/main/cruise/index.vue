@@ -134,6 +134,95 @@
             </div>
         </div>
     </div>
+    <div v-else-if="state === 'create'">
+        <div class="pb-1 flex justify-content-between">
+            <span class="font-semibold text-3xl">Thêm mới du thuyền</span>
+            <span class="mr-4">
+                <Button label="Quay lại" class="flex justify-end float-end" severity="info" icon="pi pi-undo" @click="changeState('default')"/>
+            </span>
+        </div>
+        <div class="col-12 mt-2">
+            <div class="card">
+                <span class="text-xl text-gray-600 font-semibold">Info</span>
+                <hr>
+                <div class="p-fluid formgrid grid mt-2 mb-4">
+                    <div class="field col-12 md:col-6">
+                        <label for="name">Tên du thuyền</label>
+                        <InputText v-model="newCruise.name" id="name" type="text" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="launchedYear">Năm ra mắt</label>
+                        <InputText v-model="newCruise.launchedYear" id="launchedYear" type="number" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="cabinQuantity">Số lượng cabin</label>
+                        <InputText v-model="newCruise.cabinQuantity" id="cabinQuantity" type="number" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="material">Chất liệu</label>
+                        <InputText v-model="newCruise.material" id="material" type="text" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="owner">Chủ sở hữu</label>
+                        <Dropdown v-model="newCruise.ownerId" :options="owners" optionLabel="name" optionValue="id" placeholder="Chọn chủ sở hữu"></Dropdown>
+                    </div>
+                    
+                    <div class="field col-12 md:col-6">
+                        <label for="rules">Luật lệ</label>
+                        <MultiSelect v-model="newCruise.ruleIds" 
+                                    :options="rules" 
+                                    optionLabel="content" 
+                                    optionValue="id"
+                                    placeholder="Chọn luật lệ" />
+                    </div>
+                    <div class="field col-12">
+                        <label for="description">Mô tả</label>
+                        <Textarea v-model="newCruise.description" id="description" rows="4" />
+                    </div>
+                    <div class="field col-12">
+                        <label for="shortDesc">Mô tả ngắn</label>
+                        <Textarea v-model="formattedShortDesc" id="shortDesc" rows="4" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="tags">Danh mục</label>
+                        <MultiSelect v-model="newCruise.tagIds" 
+                                    :options="tags" 
+                                    optionLabel="name" 
+                                    optionValue="id"
+                                    placeholder="Chọn danh mục"
+                                    :maxSelectedLabels="3" 
+                                    class="w-full md:w-40rem" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="location">Lộ trình</label>
+                        <Dropdown v-model="newCruise.locationId" 
+                                :options="routes" 
+                                optionLabel="name" 
+                                optionValue="id"
+                                placeholder="Chọn lịch trình" 
+                                class="w-full md:w-40rem" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="price">Giá</label>
+                        <InputText v-model="newCruise.price" id="price" type="number" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="ownedDate">Ngày sở hữu</label>
+                        <InputText v-model="newCruise.ownedDate" id="ownedDate" type="date" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="departureTime">Giờ khởi hành</label>
+                        <InputText v-model="newCruise.departureTime" id="departureTime" type="time" />
+                    </div>
+                    <div class="field col-12 md:col-6">
+                        <label for="arrivalTime">Giờ đến</label>
+                        <InputText v-model="newCruise.arrivalTime" id="arrivalTime" type="time" />
+                    </div>
+                </div>
+                <Button type="submit" label="Thêm mới" severity="info" icon="pi pi-plus" @click="createCruise"/>
+            </div>
+        </div>
+    </div>
 </template>
 
 
@@ -215,6 +304,12 @@ export default {
             home: ref({
                 icon: 'pi pi-home'
             }),
+            rules: [
+                {
+                    id: 0,
+                    content: ''
+                }
+            ],
             state: 'default',
             cruiseDetailId: 0,
             cruiseDetail: {
@@ -247,6 +342,22 @@ export default {
                     name: ''
                 }
             },
+            newCruise: {
+                name: '',
+                launchedYear: null,
+                cabinQuantity: null,
+                material: '',
+                shortDesc: [],
+                description: '',
+                price: null,
+                ownedDate: null,
+                departureTime: null,
+                arrivalTime: null,
+                ruleIds: [],
+                tagIds: [],
+                ownerId: null,
+                locationId: null
+            },
             owners: [
                 {
                     id: 0, 
@@ -260,10 +371,28 @@ export default {
         this.fetchOwners();
         this.fetchTags();
         this.fetchLocation();
+        this.fetchRules();
     },
     methods: {
         onAdvancedUpload() {
             this.$toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        },
+        fetchRules() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/rules/auth`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.rules = data;
+                console.log("rules list: ", this.rules );
+            })
+            .catch(error => {
+                console.log("Error fetching rules list!", error);
+            });
         },
         fetchLocation() {
             const access_token = localStorage.getItem('access_token');
@@ -396,6 +525,15 @@ export default {
                     'Authorization': `Bearer ${access_token}`
                 }
             })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
             .then(res => res.json())
             .then(data => {
                 this.cruises = data;
@@ -470,6 +608,60 @@ export default {
                 // router.replace("/");
                 console.log("Error fetching cruise list!", error);
             });
+        },
+        createCruise() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/cruises/create`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    name: this.newCruise.name,
+                    launchedYear: this.newCruise.launchedYear,
+                    cabinQuantity: this.newCruise.cabinQuantity,
+                    material: this.newCruise.material,
+                    description: this.newCruise.description,
+                    price: this.newCruise.price,
+                    ownedDate: this.newCruise.ownedDate,
+                    departureTime: this.newCruise.departureTime,
+                    arrivalTime: this.newCruise.arrivalTime,
+                    shortDesc: this.formattedShortDesc.split('\n').map(item => item.trim()).filter(item => item !== ''),
+                    ruleIds: this.newCruise.ruleIds,
+                    tagIds: this.newCruise.tagIds,
+                    locationId: this.newCruise.locationId,
+                    ownerId: this.newCruise.ownerId
+                })
+            })
+            .then(res => {
+                if (res.status === 403) {
+                    this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                    useAuthStore().logout();
+                }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 201) {
+                    this.$toast.add({ severity: 'success', summary: 'Thao tác', detail: 'Thêm mới du thuyền thành công', life: 3000 });
+                    setTimeout(() => {
+                        this.changeState('default');
+                        this.fetchCruises();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Lỗi khi thêm mới du thuyền!', life: 3000 });
+                console.log("Error creating cruise!", error);
+            });
+        },
+        formatDate(date: any) {
+            return date.toISOString().split('T')[0];
+        },
+        formatTime(time: any) {
+            return time.toTimeString().split(' ')[0];
         },
         updateCruise(cruiseId: number) {
             const access_token = localStorage.getItem('access_token');

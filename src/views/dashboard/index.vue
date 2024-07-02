@@ -63,12 +63,12 @@
                     </template>
                     <template #content>
                         <p class="m-0 font-bold text-xl">
-                            2104 <span class="text-cyan-400"> khách hàng</span>
+                            {{ userCount}} <span class="text-cyan-400"> khách hàng</span>
                         </p>
                     </template>
                     <template #footer>
                         <p class="m-0">
-                            <span class="text-green-400">24 new</span> seen last visit
+                            <span class="text-green-400">2 new</span> seen last visit
                         </p>
                     </template>
                 </Card>
@@ -85,7 +85,7 @@
                     </template>
                     <template #content>
                         <p class="m-0 font-bold text-xl">
-                            48 <span class="text-purple-400"> du thuyền</span>
+                            {{ cruiseCount }} <span class="text-purple-400"> du thuyền</span>
                         </p>
                     </template>
                     <template #footer>
@@ -224,12 +224,68 @@ export default {
             home: ref({
                 icon: 'pi pi-home'
             }),
+            userCount: ref(0),
+            cruiseCount: ref(0),
         };
     },
     mounted() {
+        this.fetchUsers();
+        this.fetchCruise();
     },
     methods: {
-        
+        fetchCruise() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/cruises/auth`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.cruiseCount = data.length;
+                console.log(this.cruiseCount);
+            })
+            .catch(error => {
+                console.log("Error fetching cruise list!", error);
+            });
+        },
+        fetchUsers() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/users`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}` // Use the token here
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.userCount = data.length;
+                console.log(this.userCount);
+            })
+            .catch(error => {
+                // router.replace("/");
+                console.log("Error fetching class list!", error);
+            });
+        }
     },
 };
 </script>
