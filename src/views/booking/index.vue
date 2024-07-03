@@ -16,24 +16,31 @@
                     </span>
                 </div>
                 <IconField iconPosition="left">
-                    <InputIcon class="pi pi-search cursor-pointer" @click="searchByName"></InputIcon>
-                    <InputText placeholder="Tìm kiếm..." v-model="searchName" />
+                    <InputIcon class="pi pi-search cursor-pointer" @click="searchByUser_Name"></InputIcon>
+                    <InputText placeholder="Tìm kiếm theo tên user..." v-model="searchName" />
                 </IconField>
             </div>
             <hr>
             <DataTable showGridlines :value="bookings" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]">
                 <Column field="id" header="ID đơn đặt" style="width: 10%"></Column>
                 <Column field="userDto.name" header="Tên người đặt" style="width: 20%"></Column>
-                <Column field="cruiseDto.name" header="Tên du thuyền" style="width: 15%"></Column>
-                <Column field="guestQuantity" header="Số lượng khách" style="width: 15%"></Column>
+                <Column field="cruiseDto.name" header="Tên du thuyền" style="width: 25%"></Column>
+                <Column field="guestQuantity" header="Số lượng khách" style="width: 5%"></Column>
                 <Column field="bookingDate" header="Ngày đặt" style="width: 15%"></Column>
-                <Column field="bookingStatus" header="Trạng thái" style="width: 15%"></Column>
-                <Column header="Thao tác" style="width: 25%">
+                <Column field="bookingStatus" header="Trạng thái" style="width: 10%">
+                    <template #body="slotProps">
+                        <span :class="getStatus(slotProps.data.bookingStatus) === 'Đã đặt' ? 'text-green-500' : 'text-orange-500'">
+                            {{ getStatus(slotProps.data.bookingStatus) }}
+                        </span>
+                    </template>
+                </Column>
+                <Column header="Thao tác" style="width: 30%">
                 <template #body="slotProps">
                     <div class="flex gap-2">
-                    <ConfirmPopup></ConfirmPopup>
-                    <Button icon="pi pi-search" severity="success" aria-label="Search" @click="fetchBookingDetail(slotProps.data.id)"/>
-                    <Button icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
+                        <ConfirmPopup></ConfirmPopup>
+                        <Button icon="pi pi-search" severity="success" aria-label="Search" @click="fetchBookingDetail(slotProps.data.id)"/>
+                        <Button icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
+                        <Button v-if="slotProps.data.bookingStatus === true" icon="pi pi-check" severity="info" aria-label="Check" label="Done" @click="setBookingStatus(slotProps.data.id)"/>
                     </div>
                 </template>
                 </Column>
@@ -114,6 +121,44 @@ export default {
         this.fetchBookings();
     },
     methods: {
+        setBookingStatus(bookingId: any) {
+            this.state = 'default';
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/update-status/${bookingId}`;
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    bookingStatus: false
+                })
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 201) {
+                    this.$toast.add({ severity: 'success', summary: 'Thao tác', detail: 'Hoàn trả du thuyền thành công!', life: 3000 });
+                    // toast.add({ severity: 'success', summary: 'Update', detail: `Sửa thông tin thành công`, life: 3000 });
+                    setTimeout(() => {
+                        this.fetchBookings();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                // router.replace("/");
+                this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Lỗi khi sửa thông tin!', life: 3000 });
+                console.log("Error updating status!", error);
+            });
+        },
         getStatus(status: boolean) {
             return status ? 'Đang đặt' : 'Đã đặt';
         },
@@ -176,8 +221,31 @@ export default {
                 console.log("Error fetching booking list!", error);
             });
         },
-        searchByName() {
-            
+        searchByUser_Name() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/search-by-user?name=${this.searchName}`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.bookings = data;
+                console.log("Booking list by name: ", this.bookings);
+            })
+            .catch(error => {
+                console.log("Error fetching booking list!", error);
+            });
         },
         fetchBookingDetail(id: number) {
             
@@ -207,7 +275,7 @@ export default {
         },
         removeBooking(bookingId: number) {
             
-        }
+        },
     }
 };
 
