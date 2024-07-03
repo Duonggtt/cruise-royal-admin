@@ -10,7 +10,23 @@
             <div class="flex justify-content-between w-full">
                 <div class="flex gap-2">
                     <span>
-                        <Button label="Thêm mới" severity="info" icon="pi pi-plus"/>
+                        <Button label="Thêm mới" severity="info" icon="pi pi-plus" @click="openNewTagDialog"/>
+                        <Dialog v-model:visible="showNewTagDialog" modal header="Thêm mới danh mục" :style="{ width: '50vw' }">
+                            <div class="p-fluid">
+                                <div class="field">
+                                    <label for="name">Tên danh mục</label>
+                                    <InputText id="name" v-model="newTag.name" required autofocus />
+                                </div>
+                                <div class="field">
+                                    <label for="icon">Biểu tượng</label>
+                                    <InputText id="icon" v-model="newTag.icon" required />
+                                </div>
+                            </div>
+                            <template #footer>
+                                <Button label="Hủy" icon="pi pi-times" @click="closeNewTagDialog" class="p-button-text"/>
+                                <Button label="Lưu" icon="pi pi-check" @click="createNewTag" autofocus />
+                            </template>
+                        </Dialog>
                     </span>
                     <span>
                         <Button label="Refresh" severity="info" icon="pi pi-refresh" @click="resetData()"/>
@@ -30,12 +46,32 @@
                 <template #body="slotProps">
                     <div class="flex gap-2">
                     <ConfirmPopup></ConfirmPopup>
-                    <Button icon="pi pi-search" severity="success" aria-label="Search"/>
+                    <Button icon="pi pi-search" severity="success" aria-label="Search" @click="openTagDetails(slotProps.data.id)"/>
                     <Button icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
                     </div>
                 </template>
                 </Column>
             </DataTable>
+            <Dialog v-model:visible="showTagDetailsDialog" modal header="Chi tiết danh mục" :style="{ width: '50vw' }">
+                        <div v-if="selectedTag" class="p-fluid">
+                            <div class="field">
+                                <label>ID</label>
+                                <InputText v-model="selectedTag.id" disabled />
+                            </div>
+                            <div class="field">
+                                <label>Tên danh mục</label>
+                                <InputText v-model="selectedTag.name" required />
+                            </div>
+                            <div class="field">
+                                <label>Biểu tượng</label>
+                                <InputText v-model="selectedTag.icon" required />
+                            </div>
+                        </div>
+                        <template #footer>
+                            <Button label="Đóng" icon="pi pi-times" @click="closeTagDetailsDialog" autofocus />
+                            <Button label="Lưu" icon="pi pi-check" @click="updateTag" autofocus />
+                        </template>
+                    </Dialog>
         </div>
     </div>
 </template>
@@ -48,6 +84,7 @@ import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
 import { useConfirm } from "primevue/useconfirm";
 import { API_URL } from '@/stores/config';
+import { icon } from '@fortawesome/fontawesome-svg-core';
 const api_url = API_URL;
 
 
@@ -75,12 +112,128 @@ export default {
                 icon: 'pi pi-home'
             }),
             searchName: '',
+            showNewTagDialog: false,
+            showTagDetailsDialog: false,
+            newTag: { name: '', icon: '' },
+            selectedTag: { id: 0, name: '', icon: '' },
+            selectedTagId: '',
         };
     },
     mounted() {
         this.fetchTags();
     },
     methods: {
+        openNewTagDialog() {
+            this.showNewTagDialog = true;
+        },
+
+        closeNewTagDialog() {
+            this.showNewTagDialog = false;
+            this.newTag = { name: '', icon: '' };
+        },
+        updateTag() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/tags/update/${this.selectedTagId}`;
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    icon: this.selectedTag.icon,
+                    name: this.selectedTag.name
+                })
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 201) {
+                    this.$toast.add({ severity: 'success', summary: 'Thao tác', detail: 'Sửa thông tin thành công', life: 3000 });
+                    // toast.add({ severity: 'success', summary: 'Update', detail: `Sửa thông tin thành công`, life: 3000 });
+                    setTimeout(() => {
+                        console.log('Updating tag:', this.selectedTag);
+                        this.closeTagDetailsDialog();
+                        this.fetchTags();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                // router.replace("/");
+                this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Lỗi khi sửa thông tin!', life: 3000 });
+                console.log("Error updating tag!", error);
+            });
+        },
+        createNewTag() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/tags/create`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
+                },
+                body: JSON.stringify({
+                    icon: this.newTag.icon,
+                    name: this.newTag.name
+                })
+            })
+            .then(res => {
+                if (res.status === 403) {
+                    this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                    useAuthStore().logout();
+                }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 201) {
+                    this.$toast.add({ severity: 'success', summary: 'Thao tác', detail: 'Thêm mới danh mục thành công', life: 3000 });
+                    setTimeout(() => {
+                        console.log('Creating new tag:', this.newTag);
+                        this.closeNewTagDialog();
+                        this.fetchTags();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                this.$toast.add({ severity: 'error', summary: 'Thao tác', detail: 'Lỗi khi thêm mới danh mục!', life: 3000 });
+                console.log("Error creating tags!", error);
+            });
+        },
+        openTagDetails(tagId: any) {
+            this.fetchDetailTag(tagId);
+            this.selectedTagId = tagId;
+            this.showTagDetailsDialog = true;
+        },
+        fetchDetailTag(tagId: any) {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/tags/${tagId}`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.selectedTag = data;
+                console.log("Selected tag: ", this.selectedTag);
+            })
+            .catch(error => {
+                console.log("Error fetching tag detail!", error);
+            });
+        },
+        closeTagDetailsDialog() {
+            this.showTagDetailsDialog = false;
+            this.selectedTag = { id: 0, name: '', icon: '' };
+        },
         fetchTags() {
             const access_token = localStorage.getItem('access_token');
             const url = `${api_url}/tags/`;
@@ -99,7 +252,8 @@ export default {
             });
         },
         resetData() {
-            this.state = 'default';
+            this.fetchTags();
+            this.searchName = '';
         },
         confirm2(event: any, tagId: number) {
             this.confirm.require({
@@ -119,10 +273,65 @@ export default {
             });
         },
         removeTag(tagId: number) {
-            console.log(tagId);
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/tags/${tagId}`;
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${access_token}` 
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 200) {
+                    this.$toast.add({ severity: 'info', summary: 'Thao tác', detail: 'Xóa thành công!', life: 3000 });
+                    setTimeout(() => {
+                        this.fetchTags();
+                    }, 1500);
+                }
+            })
         },
         searchByName() {
-            console.log("Search by name: ", this.searchName);
+            if(this.searchName === '') {
+                this.$toast.add({ severity: 'warn', summary: 'Tìm kiếm', detail: 'Vui lòng nhập tên danh mục !', life: 3000 });
+                return;
+            }
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/tags/search?name=${this.searchName}`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                },
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.tags = [];
+                this.tags = [...(data as any[])];
+                console.log("Tags list: ", this.tags);
+                return this.tags;
+            })
+            .catch(error => {
+                // router.replace("/");
+                this.$toast.add({ severity: 'error', summary: 'Tìm kiếm', detail: 'Không tìm thấy thông tin danh mục!', life: 3000 });
+                console.log("Error searching tags!", error);
+            });
         }
     }
 };

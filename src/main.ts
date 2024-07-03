@@ -38,7 +38,6 @@ import Chart from 'primevue/chart';
 import FileUpload from 'primevue/fileupload';
 
 
-
 import 'toastr/build/toastr.min.css';
 declare module '@vue/runtime-core' {
     interface ComponentCustomProperties {

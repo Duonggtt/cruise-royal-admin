@@ -19,7 +19,7 @@
                     </template>
                     <template #content>
                         <p class="m-0 font-bold text-xl">
-                            123 <span class="text-blue-400"> đơn đặt</span>
+                            {{ countBooking }} <span class="text-blue-400"> đơn đặt</span>
                         </p>
                     </template>
                     <template #footer>
@@ -41,7 +41,7 @@
                     </template>
                     <template #content>
                         <p class="m-0 font-bold text-xl">
-                            240.000.000.000 <span class="text-orange-400"> vnđ</span>
+                            {{ totalRevenue }} <span class="text-orange-400"> vnđ</span>
                         </p>
                     </template>
                     <template #footer>
@@ -102,82 +102,24 @@
                     <h5 class="text-gray-600 text-2xl font-bold">Top du thuyền được thuê nhiều nhất</h5>
                 </div>
                 <ul class="list-none p-0 m-0">
-                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
+                    <li v-for="cruise in topCruises" :key="cruise.id" class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
                         <div>
-                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Space T-Shirt</span>
-                            <div class="mt-1 text-600">Clothing</div>
+                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">{{ cruise.name }}</span>
+                            <div class="mt-1 text-600">{{ formatPrice(cruise.price) }} VNĐ</div>
                         </div>
                         <div class="mt-2 md:mt-0 flex align-items-center">
                             <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">
-                                <div class="bg-orange-500 h-full" style="width: 50%"></div>
+                                <div :class="getRandomColor()" class="h-full" :style="{ width: getRandomPercentage() + '%' }"></div>
                             </div>
-                            <span class="text-orange-500 ml-3 font-medium">%50</span>
-                        </div>
-                    </li>
-                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                        <div>
-                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Portal Sticker</span>
-                            <div class="mt-1 text-600">Accessories</div>
-                        </div>
-                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">
-                                <div class="bg-cyan-500 h-full" style="width: 16%"></div>
-                            </div>
-                            <span class="text-cyan-500 ml-3 font-medium">%16</span>
-                        </div>
-                    </li>
-                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                        <div>
-                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Supernova Sticker</span>
-                            <div class="mt-1 text-600">Accessories</div>
-                        </div>
-                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">
-                                <div class="bg-pink-500 h-full" style="width: 67%"></div>
-                            </div>
-                            <span class="text-pink-500 ml-3 font-medium">%67</span>
-                        </div>
-                    </li>
-                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                        <div>
-                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Wonders Notebook</span>
-                            <div class="mt-1 text-600">Office</div>
-                        </div>
-                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">
-                                <div class="bg-green-500 h-full" style="width: 35%"></div>
-                            </div>
-                            <span class="text-green-500 ml-3 font-medium">%35</span>
-                        </div>
-                    </li>
-                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                        <div>
-                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Mat Black Case</span>
-                            <div class="mt-1 text-600">Accessories</div>
-                        </div>
-                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">
-                                <div class="bg-purple-500 h-full" style="width: 75%"></div>
-                            </div>
-                            <span class="text-purple-500 ml-3 font-medium">%75</span>
-                        </div>
-                    </li>
-                    <li class="flex flex-column md:flex-row md:align-items-center md:justify-content-between mb-4">
-                        <div>
-                            <span class="text-900 font-medium mr-2 mb-1 md:mb-0">Robots T-Shirt</span>
-                            <div class="mt-1 text-600">Clothing</div>
-                        </div>
-                        <div class="mt-2 md:mt-0 ml-0 md:ml-8 flex align-items-center">
-                            <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">
-                                <div class="bg-teal-500 h-full" style="width: 40%"></div>
-                            </div>
-                            <span class="text-teal-500 ml-3 font-medium">%40</span>
                         </div>
                     </li>
                 </ul>
             </div>
-            <div class="card flex justify-content-center w-full">
-                <Chart type="pie" :data="chartData" :options="chartOptions" class="w-full md:w-30rem" />
+            <div class="card w-full">
+                <div class="flex justify-content-between align-items-center mb-2">
+                    <h5 class="text-gray-600 text-2xl font-bold">Trạng thái các đơn đặt</h5>
+                </div>
+                <Chart type="doughnut" :data="chartData" :options="chartOptions" class="w-full md:w-96" />
             </div>
         </div>
     </dir>
@@ -218,6 +160,26 @@ export default {
     },
     data() {
         return {
+            chartData: {
+                labels: ['Đã đặt', 'Đang đặt'],
+                datasets: [
+                {
+                    data: [1, 1],
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                    ],
+                    hoverBackgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                    ]
+                }
+                ]
+            },
+            chartOptions: {
+                responsive: true,
+                maintainAspectRatio: false
+            },
             items: ref([
                 { label: 'Báo cáo - thống kê' }, 
             ]),
@@ -226,13 +188,173 @@ export default {
             }),
             userCount: ref(0),
             cruiseCount: ref(0),
+            topCruises: [{id: '', name: '', price: 0}],
+            countBooking: 0,
+            totalRevenue: 0,
+            countBookingStatusTrue: 0,
+            countBookingStatusFalse: 0,
         };
     },
     mounted() {
         this.fetchUsers();
         this.fetchCruise();
+        this.fetchTopCruises();
+        this.getCountBooking();
+        this.getTotalRevenue();
+        this.getCountBookingStatusFalse();
+        this.getCountBookingStatusTrue();
+        this.setDataChart();
+    },
+    watch: {
+        countBookingStatusFalse(newVal) {
+            if (newVal !== null) this.setDataChart();
+        },
+        countBookingStatusTrue(newVal) {
+            if (newVal !== null) this.setDataChart();
+        }
     },
     methods: {
+        setDataChart() {
+            this.chartData.datasets[0].data = [this.countBookingStatusFalse, this.countBookingStatusTrue];
+        },
+        getCountBookingStatusFalse() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/count-booking-false`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.countBookingStatusFalse = data;
+            })
+            .catch(error => {
+                console.log("Error fetching total revenue!", error);
+            });
+        },
+        getCountBookingStatusTrue() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/count-booking-true`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.countBookingStatusTrue = data;
+            })
+            .catch(error => {
+                console.log("Error fetching total revenue!", error);
+            });
+        },
+        formatNumberAsCurrency(number: any) {
+            return number.toLocaleString('vi-VN');
+        },
+        getCountBooking() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/count-booking`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.countBooking = data;
+            })
+            .catch(error => {
+                console.log("Error fetching total revenue!", error);
+            });
+        },
+        getTotalRevenue() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/total-revenue`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.totalRevenue = this.formatNumberAsCurrency(data);
+            })
+            .catch(error => {
+                console.log("Error fetching total revenue!", error);
+            });
+        },
+        fetchTopCruises() {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/cruises/top-featured`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.topCruises = data;
+            })
+            .catch(error => {
+                console.log("Error fetching cruise list!", error);
+            });
+        },
+        formatPrice(price: any) {
+            return new Intl.NumberFormat('vi-VN').format(price);
+        },
+        getRandomColor() {
+            const colors = ['bg-orange-500 text-orange-500', 'bg-cyan-500 text-cyan-500', 'bg-pink-500 text-pink-500', 'bg-green-500 text-green-500', 'bg-purple-500 text-purple-500', 'bg-teal-500 text-teal-500'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        },
+        getRandomPercentage() {
+            return Math.floor(Math.random() * 100) + 1;
+        },
         fetchCruise() {
             const access_token = localStorage.getItem('access_token');
             const url = `${api_url}/cruises/auth`;
