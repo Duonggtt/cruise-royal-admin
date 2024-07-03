@@ -109,7 +109,7 @@
                         </div>
                         <div class="mt-2 md:mt-0 flex align-items-center">
                             <div class="surface-300 border-round overflow-hidden w-10rem lg:w-6rem" style="height: 8px">
-                                <div :class="getRandomColor()" class="h-full" :style="{ width: getRandomPercentage() + '%' }"></div>
+                                <div :class="getRandomColor()" class="h-full" :style="{ width: getAvailableRoomPercentage(cruise) + '%' }"></div>
                             </div>
                         </div>
                     </li>
@@ -188,7 +188,7 @@ export default {
             }),
             userCount: ref(0),
             cruiseCount: ref(0),
-            topCruises: [{id: '', name: '', price: 0}],
+            topCruises: [{id: '', name: '', price: 0, totalRoomQuantity: 0, totalAvailableRoomQuantity: 0}],
             countBooking: 0,
             totalRevenue: 0,
             countBookingStatusTrue: 0,
@@ -339,6 +339,7 @@ export default {
             })
             .then(res => res.json())
             .then(data => {
+                console.log(data);
                 this.topCruises = data;
             })
             .catch(error => {
@@ -352,8 +353,10 @@ export default {
             const colors = ['bg-orange-500 text-orange-500', 'bg-cyan-500 text-cyan-500', 'bg-pink-500 text-pink-500', 'bg-green-500 text-green-500', 'bg-purple-500 text-purple-500', 'bg-teal-500 text-teal-500'];
             return colors[Math.floor(Math.random() * colors.length)];
         },
-        getRandomPercentage() {
-            return Math.floor(Math.random() * 100) + 1;
+        getAvailableRoomPercentage(cruise: any) {
+            if (cruise.totalRoomQuantity === 0) return 0; // Avoid division by zero
+            console.log((cruise.totalAvailableRoomQuantity / cruise.totalRoomQuantity) * 100);
+            return Math.floor((cruise.totalAvailableRoomQuantity / cruise.totalRoomQuantity) * 100);
         },
         fetchCruise() {
             const access_token = localStorage.getItem('access_token');

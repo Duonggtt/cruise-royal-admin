@@ -36,6 +36,9 @@ import Card from 'primevue/card';
 import MeterGroup from 'primevue/metergroup';
 import Chart from 'primevue/chart';
 import FileUpload from 'primevue/fileupload';
+import InputNumber from 'primevue/inputnumber';
+import Calendar from 'primevue/calendar'
+import AutoComplete from 'primevue/autocomplete'
 
 
 import 'toastr/build/toastr.min.css';
@@ -74,7 +77,10 @@ app.component('MultiSelect', MultiSelect)
 app.component('Card', Card)
 app.component('MeterGroup', MeterGroup)
 app.component('Chart', Chart)
+app.component('InputNumber', InputNumber)
+app.component('Calendar', Calendar)
 app.component('FileUpload', FileUpload)
+app.component('AutoComplete', AutoComplete)
 
 
 app.mount('#app')
