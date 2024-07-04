@@ -160,7 +160,7 @@
                 </template>
                 </Column>
             </DataTable>
-            <Dialog v-model:visible="showBookingDetailModal" modal header="Chi tiết đơn đặt" :style="{ width: '70vw' }">
+            <Dialog v-model:visible="showBookingDetailModal" modal header="Chi tiết đơn đặt" :style="{ width: '40vw' }">
                 <h4>Thông tin đơn đặt</h4>
                 <div class="grid ml-4">
                     <div class="col-12 md:col-6">
