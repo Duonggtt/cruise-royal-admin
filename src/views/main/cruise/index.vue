@@ -92,6 +92,17 @@
                         <hr>
                         <!-- <Textarea v-modal="formattedRules" id="rule" rows="4" /> -->
                     </div>
+                    <div class="field col-12 md:col-12">
+                        <label for="tag">Luật lệ</label>
+                        <MultiSelect v-model="selectedRules" 
+                                    display="chip" 
+                                    :options="rules" 
+                                    optionLabel="content" 
+                                    optionValue="id"
+                                    placeholder="Chọn luật lệ"
+                                    :maxSelectedLabels="10" 
+                                    class="w-full md:w-40rem" />
+                    </div>
                     <div class="field col-12 md:col-6">
                         <label for="tag">Danh mục</label>
                         <MultiSelect v-model="selectedTags" 
@@ -100,7 +111,7 @@
                                     optionLabel="name" 
                                     optionValue="id"
                                     placeholder="Chọn danh mục"
-                                    :maxSelectedLabels="3" 
+                                    :maxSelectedLabels="1" 
                                     class="w-full md:w-40rem" />
                     </div>
                     <div class="field col-12 md:col-6">
@@ -173,7 +184,9 @@
                                     :options="rules" 
                                     optionLabel="content" 
                                     optionValue="id"
-                                    placeholder="Chọn luật lệ" />
+                                    placeholder="Chọn luật lệ" 
+                                    :maxSelectedLabels="1" 
+                                    class="w-full md:w-40rem" />
                     </div>
                     <div class="field col-12">
                         <label for="description">Mô tả</label>
@@ -291,6 +304,7 @@ export default {
             selectedRouteName: '',
             cruises: [] as any[],
             selectedTags: [{id: 0, name: ''}],
+            selectedRules: [{id: 0, content: ''}],
             tags: [{id: 0, name: ''}],
             routes: [] as { name: string; id: number }[],
             locations: [],  
@@ -598,6 +612,7 @@ export default {
                 // this.userDetail = data;  
                 this.cruiseDetail = data;
                 this.selectedTags = this.cruiseDetail.tags ? this.cruiseDetail.tags.map(tag => tag.id) : [];
+                this.selectedRules = this.cruiseDetail.rules ? this.cruiseDetail.rules.map(rule => rule.id) : [];
                 this.selectedRouteId = this.cruiseDetail.location?.id || null;
                 if (!Array.isArray(this.cruiseDetail.shortDesc)) {
                     this.cruiseDetail.shortDesc = this.cruiseDetail.shortDesc ? [this.cruiseDetail.shortDesc] : [];
@@ -684,7 +699,7 @@ export default {
                     departureTime: this.cruiseDetail.departureTime,
                     arrivalTime: this.cruiseDetail.arrivalTime,
                     shortDesc: this.formattedShortDesc.split('\n').map(item => item.trim()).filter(item => item !== ''),
-                    ruleIds: this.cruiseDetail.rules.map((rule: { id: any; }) => rule.id),
+                    ruleIds: this.selectedRules,
                     tagIds: this.selectedTags,
                     locationId: this.selectedRouteId,
                     ownerId: this.cruiseDetail.owner.id
