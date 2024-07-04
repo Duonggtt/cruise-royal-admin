@@ -160,6 +160,84 @@
                 </template>
                 </Column>
             </DataTable>
+            <Dialog v-model:visible="showBookingDetailModal" modal header="Chi tiết đơn đặt" :style="{ width: '70vw' }">
+                <h4>Thông tin đơn đặt</h4>
+                <div class="p-fluid grid">
+                    <div class="col-12 md:col-6 mb-2">
+                        <label>ID đơn đặt</label>
+                        <InputText v-model="bookingDetail.id" disabled />
+                    </div>
+                    <div class="col-12 md:col-6 mb-2">
+                        <label>Ngày đặt</label>
+                        <InputText v-model="bookingDetail.bookingDate" disabled />
+                    </div>
+                    <div class="col-12 md:col-6 mb-2">
+                        <label>Ngày tạo đơn</label>
+                        <InputText v-model="bookingDetail.orderDate" disabled />
+                    </div>
+                    <div class="col-12 md:col-6 mb-2">
+                        <label>Số lượng khách</label>
+                        <InputText v-model="bookingDetail.guestQuantity" disabled />
+                    </div>
+                    <div class="col-12 md:col-6 mb-2">
+                        <label>Tổng giá</label>
+                        <InputText v-model="bookingDetail.totalPrice" disabled />
+                    </div>
+                    <div class="col-12 mb-2">
+                        <label>Ghi chú</label>
+                        <Textarea v-model="bookingDetail.note" rows="3" disabled />
+                    </div>
+                    <div class="col-12 md:col-6 mb-2">
+                        <label>Trạng thái đơn đặt</label>
+                        <InputText :value="getStatus(Boolean(bookingDetail.bookingStatus))" disabled />
+                    </div>
+                    <div class="col-12 md:col-6 mb-2">
+                        <label>Trạng thái thanh toán</label>
+                        <InputText :value="getPaymentStatus(Boolean(bookingDetail.paymentStatus))" disabled />
+                    </div>
+                    
+                    <div class="col-12 mb-2">
+                        <h4>Thông tin người dùng</h4>
+                        <div class="grid">
+                            <div class="col-12 md:col-6 mb-2">
+                                <label>Tên</label>
+                                <InputText v-model="bookingDetail.userDto.name" disabled />
+                            </div>
+                            <div class="col-12 md:col-6 mb-2">
+                                <label>Điện thoại</label>
+                                <InputText v-model="bookingDetail.userDto.phone" disabled />
+                            </div>
+                            <div class="col-12 md:col-6 mb-2">
+                                <label>Email</label>
+                                <InputText v-model="bookingDetail.userDto.email" disabled />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 mb-2">
+                        <h4>Thông tin du thuyền</h4>
+                        <InputText v-model="bookingDetail.cruiseDto.name" disabled />
+                    </div>
+                    
+                    <div class="col-12 mb-2">
+                        <h4>Cabin đã đặt</h4>
+                        <div>
+                            <p>Tổng số loại phòng ngủ: {{ groupedCabins.length }}</p>
+                            <div v-if="groupedCabins.length > 0" class="flex flex-wrap -mx-2">
+                                <div v-for="cabin in groupedCabins" :key="cabin.id" class="w-1/5 px-2 mb-4">
+                                <div class="border rounded p-3 text-center shadow-sm hover:shadow-md transition-shadow duration-300">
+                                    <h4 class="text-lg font-semibold text-blue-600">{{ cabin.name }}</h4>
+                                    <p class="mt-2 text-gray-600">Số lượng: {{ cabin.count }}</p>
+                                </div>
+                                </div>
+                            </div>
+                            <div v-else>
+                                Không có thông tin cabin.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Dialog>
         </div>
     </div>
 </template>
@@ -175,6 +253,41 @@ import { API_URL } from '@/stores/config';
 import { icon } from '@fortawesome/fontawesome-svg-core';
 const api_url = API_URL;
 
+interface Cabin {
+  id: number;
+  cabinTypeDto: {
+    id: number;
+    name: string;
+  };
+}
+
+interface BookingDetail {
+  id: string;
+  bookingDate: string;
+  orderDate: string;
+  guestQuantity: string;
+  totalPrice: string;
+  note: string;
+  bookingStatus: string;
+  paymentStatus: string;
+  userDto: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+  };
+  cabinDto: Cabin[];
+  cruiseDto: {
+    id: string;
+    name: string;
+  };
+}
+
+interface GroupedCabin {
+  id: number;
+  name: string;
+  count: number;
+}
 
 export default {
     setup() {
@@ -186,6 +299,9 @@ export default {
         }
     },
     computed: {
+        isAdmin() { 
+            return useAuthStore().isAdmin;
+        },
         cabinBookingsComputed: {
             get() {
             return this.cabinBookings;
@@ -199,6 +315,40 @@ export default {
             });
             this.cabinBookings = {...newValue};
             }
+        },
+        groupedCabins(): GroupedCabin[] {
+            if (!this.bookingDetail || !Array.isArray(this.bookingDetail.cabinDto)) {
+            console.log('No cabin data available');
+            return [];
+            }
+
+            const groups = this.bookingDetail.cabinDto.reduce((acc: {[key: number]: GroupedCabin}, cabin: Cabin) => {
+            if (!cabin || !cabin.cabinTypeDto) {
+                console.log('Invalid cabin data:', cabin);
+                return acc;
+            }
+
+            const key = cabin.cabinTypeDto.id;
+            if (key === undefined) {
+                console.log('Invalid cabin type id:', cabin.cabinTypeDto);
+                return acc;
+            }
+
+            if (!acc[key]) {
+                acc[key] = {
+                    id: cabin.cabinTypeDto.id,
+                    name: cabin.cabinTypeDto.name || 'Unknown',
+                    count: 1
+                };
+            } else {
+                acc[key].count++;
+            }
+            return acc;
+            }, {});
+
+            const result = Object.values(groups) as GroupedCabin[];
+            console.log('Grouped cabins:', result);
+            return result;
         }
     },
     data() {
@@ -222,6 +372,7 @@ export default {
             searchName: '',
             showNewBookingDialog: false,
             showBookingDetailsDialog: false,
+            showBookingDetailModal: false,
             showUserSelectionDialog: false,
             showCabinSelectionDialog: false,
             cabins: [
@@ -289,6 +440,27 @@ export default {
                     }
                 }
             ],
+            bookingDetail: {
+                id: '',
+                bookingDate: '',
+                orderDate: '',
+                guestQuantity: '',
+                totalPrice: '',
+                note: '',
+                bookingStatus: '',
+                paymentStatus: '',
+                userDto: {
+                    id: '',
+                    name: '',
+                    phone: '',
+                    email: '',
+                },
+                cabinDto: [],
+                cruiseDto: {
+                    id: '',
+                    name: '',
+                }
+                } as BookingDetail,
         };
     },
     mounted() {
@@ -590,7 +762,29 @@ export default {
             });
         },
         fetchBookingDetail(id: number) {
-            
+            this.showBookingDetailModal = true;
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/detail/${id}`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                if (res.status === 403) {
+                    this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                    useAuthStore().logout();
+                }
+                return res.json();
+            })
+            .then(data => {
+                this.bookingDetail = data;
+                console.log("Booking detail: ", data);
+            })
+            .catch(error => {
+                console.log("Error fetching booking detail!", error);
+                this.$toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch booking details', life: 3000 });
+            });
         },
         openNewBookingDialog() {
             this.showUserSelectionDialog = true;
@@ -665,7 +859,31 @@ export default {
             });
         },
         removeBooking(bookingId: number) {
-            
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/${bookingId}`;
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${access_token}` // Use the token here
+                }
+            })
+            .then(res => {
+                // If the token has expired
+               if (res.status === 403) {
+                this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                //  toast.add({ severity: 'error', summary: 'Authentication', detail: `Phiên đăng nhập hết hạn!`, life: 3000 });
+                 useAuthStore().logout();
+               }
+                return res;
+            })
+            .then(res => {
+                if(res.status === 200) {
+                    this.$toast.add({ severity: 'info', summary: 'Thao tác', detail: 'Hủy đơn thành công!', life: 3000 });
+                    setTimeout(() => {
+                        this.fetchBookings();
+                    }, 1500);
+                }
+            })
         },
     }
 };

@@ -1,158 +1,167 @@
 <template>
     <Toast/>
-    <div v-if="state === 'default'">
-        <div class="pb-4">
-            <span class="flex font-semibold text-3xl pb-3">Danh sách phòng ngủ</span>
-            <Breadcrumb :home="home" :model="items" />
-        </div>
-        
-        <div class="card">
-            <div class="flex justify-content-between w-full">
-                <div class="flex gap-2">
-                    <span>
-                        <Button label="Thêm mới" severity="info" icon="pi pi-plus" @click="changeState('create')"/>
-                    </span>
-                    <span>
-                        <Button label="Refresh" severity="info" icon="pi pi-refresh" @click="resetData()"/>
-                    </span>
-                </div>
-                <div class="w-6">
-                    <Dropdown 
-                        v-model="selectedCruise"
-                        :options="cruises" 
-                        optionLabel="name" 
-                        optionValue="id" 
-                        placeholder="Chọn du thuyền..." 
-                        class="w-full"
-                        @change="onCruiseChange"
-                    />
-                </div>
+    <div v-if="isAdmin">
+        <div v-if="state === 'default'">
+            <div class="pb-4">
+                <span class="flex font-semibold text-3xl pb-3">Danh sách phòng ngủ</span>
+                <Breadcrumb :home="home" :model="items" />
             </div>
-            <hr>
-            <DataTable showGridlines :value="cabins" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]">
-                <Column field="id" header="ID" style="width: 10%"></Column>
-                <Column field="cabinType.name" header="Tên phòng" style="width: 20%"></Column>
-                <Column field="cabinType.roomSize" header="Kích cỡ" style="width: 15%"></Column>
-                <Column field="roomQuantity" header="Số lượng phòng" style="width: 15%"></Column>
-                <Column field="cabinType.maxGuests" header="Số người ở" style="width: 15%"></Column>
-                <Column field="cabinType.price" header="Giá phòng" style="width: 15%"></Column>
-                <Column header="Thao tác" style="width: 25%">
-                <template #body="slotProps">
+            
+            <div class="card">
+                <div class="flex justify-content-between w-full">
                     <div class="flex gap-2">
-                    <ConfirmPopup></ConfirmPopup>
-                    <Button icon="pi pi-search" severity="success" aria-label="Search" @click="fetchCabinDetail(slotProps.data.id)"/>
-                    <Button icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
+                        <span>
+                            <Button label="Thêm mới" severity="info" icon="pi pi-plus" @click="changeState('create')"/>
+                        </span>
+                        <span>
+                            <Button label="Refresh" severity="info" icon="pi pi-refresh" @click="resetData()"/>
+                        </span>
                     </div>
-                </template>
-                </Column>
-            </DataTable>
-        </div>
-    </div>
-    <div v-else-if="state === 'update'">
-        <div class="pb-1 flex justify-content-between">
-            <span class="font-semibold text-3xl">Cập nhật thông tin phòng</span>
-            <span class="mr-4">
-                <Button label="Quay lại" class="flex justify-end float-end" severity="info" icon="pi pi-undo" @click="changeState('default')"/>
-            </span>
-        </div>
-        <div class="col-12 mt-2">
-            <div class="card">
-                <span class="text-xl text-gray-600 font-semibold">Thông tin phòng</span>
-                <hr>
-                <div class="p-fluid formgrid grid mt-2 mb-4">
-                    <div class="field col-12 md:col-6">
-                        <label for="name">Tên phòng</label>
-                        <InputText v-model="cabinDetail.cabinType.name" id="name" type="text" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="roomSize">Kích thước phòng</label>
-                        <InputText v-model="cabinDetail.cabinType.roomSize" id="roomSize" type="number" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="maxGuests">Số người 1 phòng</label>
-                        <InputText v-model="cabinDetail.cabinType.maxGuests" id="maxGuests" type="number" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="price">Giá phòng</label>
-                        <InputText v-model="cabinDetail.cabinType.price" id="price" type="number" />
-                    </div>
-                    <div class="field col-12">
-                        <label for="description">Mô tả</label>
-                        <Textarea v-model="cabinDetail.cabinType.description" id="description" rows="4" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="roomQuantity">Số lượng phòng</label>
-                        <InputText v-model="cabinDetail.roomQuantity" id="roomQuantity" type="number" disabled/>
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="availableRooms">Số phòng còn trống</label>
-                        <InputText v-model="cabinDetail.availableRooms" id="availableRooms" type="number" disabled />
-                    </div>
-                    <div class="field col-12">
-                        <label for="tags">Danh mục</label>
-                        <MultiSelect v-model="selectedTags" 
-                                    :options="tags" 
-                                    optionLabel="name" 
-                                    optionValue="id"
-                                    placeholder="Chọn danh mục"
-                                    :maxSelectedLabels="5" 
-                                    class="w-full md:w-40rem" />
+                    <div class="w-6">
+                        <Dropdown 
+                            v-model="selectedCruise"
+                            :options="cruises" 
+                            optionLabel="name" 
+                            optionValue="id" 
+                            placeholder="Chọn du thuyền..." 
+                            class="w-full"
+                            @change="onCruiseChange"
+                        />
                     </div>
                 </div>
-                <Button type="submit" label="Cập nhật" severity="info" icon="pi pi-check" @click="updateCabin()"/>
+                <hr>
+                <DataTable showGridlines :value="cabins" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]">
+                    <Column field="id" header="ID" style="width: 10%"></Column>
+                    <Column field="cabinType.name" header="Tên phòng" style="width: 20%"></Column>
+                    <Column field="cabinType.roomSize" header="Kích cỡ" style="width: 15%"></Column>
+                    <Column field="roomQuantity" header="Số lượng phòng" style="width: 15%"></Column>
+                    <Column field="cabinType.maxGuests" header="Số người ở" style="width: 15%"></Column>
+                    <Column field="cabinType.price" header="Giá phòng" style="width: 15%"></Column>
+                    <Column header="Thao tác" style="width: 25%">
+                    <template #body="slotProps">
+                        <div class="flex gap-2">
+                        <ConfirmPopup></ConfirmPopup>
+                        <Button icon="pi pi-search" severity="success" aria-label="Search" @click="fetchCabinDetail(slotProps.data.id)"/>
+                        <Button icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
+                        </div>
+                    </template>
+                    </Column>
+                </DataTable>
+            </div>
+        </div>
+        <div v-else-if="state === 'update'">
+            <div class="pb-1 flex justify-content-between">
+                <span class="font-semibold text-3xl">Cập nhật thông tin phòng</span>
+                <span class="mr-4">
+                    <Button label="Quay lại" class="flex justify-end float-end" severity="info" icon="pi pi-undo" @click="changeState('default')"/>
+                </span>
+            </div>
+            <div class="col-12 mt-2">
+                <div class="card">
+                    <span class="text-xl text-gray-600 font-semibold">Thông tin phòng</span>
+                    <hr>
+                    <div class="p-fluid formgrid grid mt-2 mb-4">
+                        <div class="field col-12 md:col-6">
+                            <label for="name">Tên phòng</label>
+                            <InputText v-model="cabinDetail.cabinType.name" id="name" type="text" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="roomSize">Kích thước phòng</label>
+                            <InputText v-model="cabinDetail.cabinType.roomSize" id="roomSize" type="number" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="maxGuests">Số người 1 phòng</label>
+                            <InputText v-model="cabinDetail.cabinType.maxGuests" id="maxGuests" type="number" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="price">Giá phòng</label>
+                            <InputText v-model="cabinDetail.cabinType.price" id="price" type="number" />
+                        </div>
+                        <div class="field col-12">
+                            <label for="description">Mô tả</label>
+                            <Textarea v-model="cabinDetail.cabinType.description" id="description" rows="4" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="roomQuantity">Số lượng phòng</label>
+                            <InputText v-model="cabinDetail.roomQuantity" id="roomQuantity" type="number" disabled/>
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="availableRooms">Số phòng còn trống</label>
+                            <InputText v-model="cabinDetail.availableRooms" id="availableRooms" type="number" disabled />
+                        </div>
+                        <div class="field col-12">
+                            <label for="tags">Danh mục</label>
+                            <MultiSelect v-model="selectedTags" 
+                                        :options="tags" 
+                                        optionLabel="name" 
+                                        optionValue="id"
+                                        placeholder="Chọn danh mục"
+                                        :maxSelectedLabels="5" 
+                                        class="w-full md:w-40rem" />
+                        </div>
+                    </div>
+                    <Button type="submit" label="Cập nhật" severity="info" icon="pi pi-check" @click="updateCabin()"/>
+                </div>
+            </div>
+        </div>
+        <div v-else-if="state === 'create'">
+            <div class="pb-1 flex justify-content-between">
+                <span class="font-semibold text-3xl">Thêm phòng mới</span>
+                <span class="mr-4">
+                    <Button label="Quay lại" class="flex justify-end float-end" severity="info" icon="pi pi-undo" @click="changeState('default')"/>
+                </span>
+            </div>
+            <div class="col-12 mt-2">
+                <div class="card">
+                    <span class="text-xl text-gray-600 font-semibold">Info</span>
+                    <hr>
+                    <div class="p-fluid formgrid grid mt-2 mb-4">
+                        <div class="field col-12 md:col-6">
+                            <label for="name">Tên phòng</label>
+                            <InputText v-model="newCabin.cabinType.name" id="name" type="text" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="launchedYear">Kích thước phòng</label>
+                            <InputText v-model="newCabin.cabinType.roomSize" id="roomSize" type="number" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="cabinQuantity">Số người 1 phòng</label>
+                            <InputText v-model="newCabin.cabinType.maxGuests" id="maxGuests" type="number" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="cabinQuantity">Giá phòng</label>
+                            <InputText v-model="newCabin.cabinType.price" id="price" type="number" />
+                        </div>
+                        <div class="field col-12">
+                            <label for="description">Mô tả</label>
+                            <Textarea v-model="newCabin.cabinType.description" id="description" rows="4" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="cabinQuantity">Số lượng phòng</label>
+                            <InputText v-model="newCabin.roomQuantity" id="roomQuantity" type="number" />
+                        </div>
+                        <div class="field col-12 md:col-6">
+                            <label for="tags">Danh mục</label>
+                            <MultiSelect v-model="newCabin.cabinType.tagIds" 
+                                        :options="tags" 
+                                        optionLabel="name" 
+                                        optionValue="id"
+                                        placeholder="Chọn danh mục"
+                                        :maxSelectedLabels="3" 
+                                        class="w-full md:w-40rem" />
+                        </div>
+                    </div>
+                    <Button type="submit" label="Thêm mới" severity="info" icon="pi pi-plus" @click="createCabinType()"/>
+                </div>
             </div>
         </div>
     </div>
-    <div v-else-if="state === 'create'">
-        <div class="pb-1 flex justify-content-between">
-            <span class="font-semibold text-3xl">Thêm phòng mới</span>
-            <span class="mr-4">
-                <Button label="Quay lại" class="flex justify-end float-end" severity="info" icon="pi pi-undo" @click="changeState('default')"/>
-            </span>
-        </div>
-        <div class="col-12 mt-2">
-            <div class="card">
-                <span class="text-xl text-gray-600 font-semibold">Info</span>
-                <hr>
-                <div class="p-fluid formgrid grid mt-2 mb-4">
-                    <div class="field col-12 md:col-6">
-                        <label for="name">Tên phòng</label>
-                        <InputText v-model="newCabin.cabinType.name" id="name" type="text" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="launchedYear">Kích thước phòng</label>
-                        <InputText v-model="newCabin.cabinType.roomSize" id="roomSize" type="number" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="cabinQuantity">Số người 1 phòng</label>
-                        <InputText v-model="newCabin.cabinType.maxGuests" id="maxGuests" type="number" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="cabinQuantity">Giá phòng</label>
-                        <InputText v-model="newCabin.cabinType.price" id="price" type="number" />
-                    </div>
-                    <div class="field col-12">
-                        <label for="description">Mô tả</label>
-                        <Textarea v-model="newCabin.cabinType.description" id="description" rows="4" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="cabinQuantity">Số lượng phòng</label>
-                        <InputText v-model="newCabin.roomQuantity" id="roomQuantity" type="number" />
-                    </div>
-                    <div class="field col-12 md:col-6">
-                        <label for="tags">Danh mục</label>
-                        <MultiSelect v-model="newCabin.cabinType.tagIds" 
-                                    :options="tags" 
-                                    optionLabel="name" 
-                                    optionValue="id"
-                                    placeholder="Chọn danh mục"
-                                    :maxSelectedLabels="3" 
-                                    class="w-full md:w-40rem" />
-                    </div>
-                </div>
-                <Button type="submit" label="Thêm mới" severity="info" icon="pi pi-plus" @click="createCabinType()"/>
-            </div>
-        </div>
+    <div v-else>
+        <Card class="flex text-center pt-2 ">
+            <template #title>
+                <span class="text-3xl text-gray-500">Unauthenticated!</span>
+            </template>
+        </Card>
     </div>
 </template>
 
@@ -177,6 +186,9 @@ export default {
         }
     },
     computed: {
+        isAdmin() { 
+            return useAuthStore().isAdmin;
+        },
         
     },
     data() {

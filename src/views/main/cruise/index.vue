@@ -10,7 +10,7 @@
             <div class="flex justify-content-between">
                 <div class="flex gap-2">
                     <span>
-                        <Button label="Thêm mới" severity="info" icon="pi pi-plus" @click="changeState('create')"/>
+                        <Button v-if="isAdmin" label="Thêm mới" severity="info" icon="pi pi-plus" @click="changeState('create')"/>
                     </span>
                     <span>
                         <Button label="Refresh" severity="info" icon="pi pi-refresh" @click="resetData()"/>
@@ -34,7 +34,7 @@
                     <div class="flex gap-2">
                     <ConfirmPopup></ConfirmPopup>
                     <Button icon="pi pi-search" severity="success" aria-label="Search" @click="fetchCruiseDetail(slotProps.data.id)"/>
-                    <Button icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
+                    <Button v-if="isAdmin" icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
                     </div>
                 </template>
                 </Column>
@@ -130,7 +130,7 @@
                         <InputText v-model="cruiseDetail.arrivalTime" id="arrivalTime" type="time" />
                     </div>
                 </div>
-                <Button type="submit" label="Sửa" severity="info" icon="pi pi-pencil" @click="updateCruise(cruiseDetail.id)"/>
+                <Button v-if="isAdmin" type="submit" label="Sửa" severity="info" icon="pi pi-pencil" @click="updateCruise(cruiseDetail.id)"/>
             </div>
         </div>
     </div>

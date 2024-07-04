@@ -51,8 +51,6 @@ export const useAuthStore = defineStore({
                       'Authorization': `Bearer ${this.access_token}`,
                   },
               });
-
-              alert('Phiên đăng nhập hết hạn!');
               return false;
           }
 
