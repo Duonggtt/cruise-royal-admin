@@ -162,80 +162,81 @@
             </DataTable>
             <Dialog v-model:visible="showBookingDetailModal" modal header="Chi tiết đơn đặt" :style="{ width: '70vw' }">
                 <h4>Thông tin đơn đặt</h4>
-                <div class="p-fluid grid">
-                    <div class="col-12 md:col-6 mb-2">
-                        <label>ID đơn đặt</label>
-                        <InputText v-model="bookingDetail.id" disabled />
-                    </div>
-                    <div class="col-12 md:col-6 mb-2">
-                        <label>Ngày đặt</label>
-                        <InputText v-model="bookingDetail.bookingDate" disabled />
-                    </div>
-                    <div class="col-12 md:col-6 mb-2">
-                        <label>Ngày tạo đơn</label>
-                        <InputText v-model="bookingDetail.orderDate" disabled />
-                    </div>
-                    <div class="col-12 md:col-6 mb-2">
-                        <label>Số lượng khách</label>
-                        <InputText v-model="bookingDetail.guestQuantity" disabled />
-                    </div>
-                    <div class="col-12 md:col-6 mb-2">
-                        <label>Tổng giá</label>
-                        <InputText v-model="bookingDetail.totalPrice" disabled />
-                    </div>
-                    <div class="col-12 mb-2">
-                        <label>Ghi chú</label>
-                        <Textarea v-model="bookingDetail.note" rows="3" disabled />
-                    </div>
-                    <div class="col-12 md:col-6 mb-2">
-                        <label>Trạng thái đơn đặt</label>
-                        <InputText :value="getStatus(Boolean(bookingDetail.bookingStatus))" disabled />
-                    </div>
-                    <div class="col-12 md:col-6 mb-2">
-                        <label>Trạng thái thanh toán</label>
-                        <InputText :value="getPaymentStatus(Boolean(bookingDetail.paymentStatus))" disabled />
-                    </div>
-                    
-                    <div class="col-12 mb-2">
-                        <h4>Thông tin người dùng</h4>
-                        <div class="grid">
-                            <div class="col-12 md:col-6 mb-2">
-                                <label>Tên</label>
-                                <InputText v-model="bookingDetail.userDto.name" disabled />
-                            </div>
-                            <div class="col-12 md:col-6 mb-2">
-                                <label>Điện thoại</label>
-                                <InputText v-model="bookingDetail.userDto.phone" disabled />
-                            </div>
-                            <div class="col-12 md:col-6 mb-2">
-                                <label>Email</label>
-                                <InputText v-model="bookingDetail.userDto.email" disabled />
-                            </div>
+                <div class="grid ml-4">
+                    <div class="col-12 md:col-6">
+                        <div class="mb-2">
+                            <strong>ID đơn đặt:</strong>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Ngày đặt:</strong>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Ngày tạo đơn:</strong>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Số lượng khách:</strong>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Tổng giá:</strong>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Trạng thái đơn đặt:</strong>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Trạng thái thanh toán:</strong>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Ghi chú:</strong>
                         </div>
                     </div>
-                    
-                    <div class="col-12 mb-2">
-                        <h4>Thông tin du thuyền</h4>
-                        <InputText v-model="bookingDetail.cruiseDto.name" disabled />
+                    <div class="col-12 md:col-6">
+                        <div class="mb-2">{{ bookingDetail.id }}</div>
+                        <div class="mb-2">{{ bookingDetail.bookingDate }}</div>
+                        <div class="mb-2">{{ bookingDetail.orderDate }}</div>
+                        <div class="mb-2">{{ bookingDetail.guestQuantity }}</div>
+                        <div class="mb-2">{{ bookingDetail.totalPrice }}</div>
+                        <div class="mb-2">{{ getStatus(Boolean(bookingDetail.bookingStatus)) }}</div>
+                        <div class="mb-2">{{ getPaymentStatus(Boolean(bookingDetail.paymentStatus)) }}</div>
+                        <div class="mb-2">{{ bookingDetail.note }}</div>
                     </div>
-                    
-                    <div class="col-12 mb-2">
-                        <h4>Cabin đã đặt</h4>
-                        <div>
-                            <p>Tổng số loại phòng ngủ: {{ groupedCabins.length }}</p>
-                            <div v-if="groupedCabins.length > 0" class="flex flex-wrap -mx-2">
-                                <div v-for="cabin in groupedCabins" :key="cabin.id" class="w-1/5 px-2 mb-4">
-                                <div class="border rounded p-3 text-center shadow-sm hover:shadow-md transition-shadow duration-300">
-                                    <h4 class="text-lg font-semibold text-blue-600">{{ cabin.name }}</h4>
-                                    <p class="mt-2 text-gray-600">Số lượng: {{ cabin.count }}</p>
-                                </div>
-                                </div>
-                            </div>
-                            <div v-else>
-                                Không có thông tin cabin.
-                            </div>
+                </div>
+
+                <h4 class="mt-4">Thông tin người dùng</h4>
+                <div class="grid ml-4">
+                    <div class="col-12 md:col-6">
+                        <div class="mb-2"><strong>Tên:</strong></div>
+                        <div class="mb-2"><strong>Điện thoại:</strong></div>
+                        <div class="mb-2"><strong>Email:</strong></div>
+                    </div>
+                    <div class="col-12 md:col-6">
+                        <div class="mb-2">{{ bookingDetail.userDto.name }}</div>
+                        <div class="mb-2">{{ bookingDetail.userDto.phone }}</div>
+                        <div class="mb-2">{{ bookingDetail.userDto.email }}</div>
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Thông tin du thuyền</h4>
+                <div class="grid ml-4">
+                    <div class="col-12 md:col-6">
+                        <div class="mb-2"><strong>Tên du thuyền:</strong></div>
+                    </div>
+                    <div class="col-12 md:col-6">
+                        <div class="mb-2">{{ bookingDetail.cruiseDto.name }}</div>
+                    </div>
+                </div>
+
+                <h4 class="mt-4">Cabin đã đặt</h4>
+                <p>Tổng số loại phòng ngủ: {{ groupedCabins.length }}</p>
+                <div v-if="groupedCabins.length > 0" class="grid">
+                    <div v-for="cabin in groupedCabins" :key="cabin.id" class="col-12 md:col-6 lg:col-4 xl:col-3 mb-4">
+                        <div class="border rounded p-3 text-center shadow-sm hover:shadow-md transition-shadow duration-300">
+                            <h4 class="text-lg font-semibold text-blue-600">{{ cabin.name }}</h4>
+                            <p class="mt-2 text-gray-600">Số lượng: {{ cabin.count }}</p>
                         </div>
                     </div>
+                </div>
+                <div v-else>
+                    Không có thông tin cabin.
                 </div>
             </Dialog>
         </div>
