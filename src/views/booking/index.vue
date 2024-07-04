@@ -194,7 +194,7 @@
                         <div class="mb-2">{{ bookingDetail.bookingDate }}</div>
                         <div class="mb-2">{{ bookingDetail.orderDate }}</div>
                         <div class="mb-2">{{ bookingDetail.guestQuantity }}</div>
-                        <div class="mb-2">{{ bookingDetail.totalPrice }}</div>
+                        <div class="mb-2">{{ formatPrice(bookingDetail.totalPrice) }} vnđ</div>
                         <div class="mb-2">{{ getStatus(Boolean(bookingDetail.bookingStatus)) }}</div>
                         <div class="mb-2">{{ getPaymentStatus(Boolean(bookingDetail.paymentStatus)) }}</div>
                         <div class="mb-2">{{ bookingDetail.note }}</div>
@@ -468,6 +468,12 @@ export default {
         this.fetchBookings();
     },
     methods: {
+        formatNumberAsCurrency(number: any) {
+            return number.toLocaleString('vi-VN');
+        },
+        formatPrice(price: any) {
+            return new Intl.NumberFormat('vi-VN').format(price);
+        },
         onCruiseSelect() {
             // Reset cabin selections when cruise changes
             this.cabinBookings = {};
