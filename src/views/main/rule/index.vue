@@ -1,6 +1,6 @@
 <template>
     <Toast/>
-    <div>
+    <div v-if="isAdmin">
         <div class="pb-4">
             <span class="flex font-semibold text-3xl pb-3">Danh sách luật lệ</span>
             <Breadcrumb :home="home" :model="items" />
@@ -28,20 +28,26 @@
                 </Column>
             </DataTable>
         </div>
-    </div>
-
-    <Dialog v-model:visible="showRuleDialog" :modal="true" :header="dialogHeader" :style="{ width: '50vw' }">
-        <div class="p-fluid">
-            <div class="field">
-                <label for="content">Nội dung</label>
-                <Textarea id="content" v-model="currentRule.content" required autofocus rows="5" />
+        <Dialog v-model:visible="showRuleDialog" :modal="true" :header="dialogHeader" :style="{ width: '50vw' }">
+            <div class="p-fluid">
+                <div class="field">
+                    <label for="content">Nội dung</label>
+                    <Textarea id="content" v-model="currentRule.content" required autofocus rows="5" />
+                </div>
             </div>
-        </div>
-        <template #footer>
-            <Button label="Hủy" icon="pi pi-times" @click="closeRuleDialog" class="p-button-text"/>
-            <Button :label="dialogMode === 'new' ? 'Lưu' : 'Cập nhật'" icon="pi pi-check" @click="saveRule" autofocus />
-        </template>
-    </Dialog>
+            <template #footer>
+                <Button label="Hủy" icon="pi pi-times" @click="closeRuleDialog" class="p-button-text"/>
+                <Button :label="dialogMode === 'new' ? 'Lưu' : 'Cập nhật'" icon="pi pi-check" @click="saveRule" autofocus />
+            </template>
+        </Dialog>
+    </div>
+    <div v-else>
+        <Card class="flex text-center pt-2 ">
+            <template #title>
+                <span class="text-3xl text-gray-500">Unauthenticated!</span>
+            </template>
+        </Card>
+    </div>
 </template>
 
 <script lang="ts">
@@ -78,6 +84,11 @@ export default defineComponent({
             dialogMode: 'new',
             dialogHeader: '',
         };
+    },
+    computed: {
+        isAdmin() {
+            return useAuthStore().isAdmin;
+        },
     },
     mounted() {
         this.fetchRules();

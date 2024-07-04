@@ -1,6 +1,6 @@
 <template>
     <Toast/>
-    <div v-if="state === 'default'">
+    <div v-if="isAdmin">
         <div class="pb-4">
             <span class="flex font-semibold text-3xl pb-3">Danh sách danh mục</span>
             <Breadcrumb :home="home" :model="items" />
@@ -74,6 +74,13 @@
                     </Dialog>
         </div>
     </div>
+    <div v-else>
+        <Card class="flex text-center pt-2 ">
+            <template #title>
+                <span class="text-3xl text-gray-500">Unauthenticated!</span>
+            </template>
+        </Card>
+    </div>
 </template>
 
 
@@ -98,7 +105,9 @@ export default {
         }
     },
     computed: {
-        
+        isAdmin() {
+            return useAuthStore().isAdmin;
+        },
     },
     data() {
         return {
