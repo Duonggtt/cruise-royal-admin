@@ -39,8 +39,7 @@ const model = ref([
     {
         label: 'Quản lý đặt vé',
         items: [
-            { label: 'Đơn đặt', icon: 'pi pi-fw pi-cart-plus', to: '/bookings' },
-            { label: 'Lịch sử', icon: 'pi pi-fw pi-history', to: '/historys' }
+            { label: 'Đơn đặt', icon: 'pi pi-fw pi-cart-plus', to: '/bookings' }
         ]
     },
 ]);
