@@ -12,6 +12,7 @@ import SectionView from '@/views/main/section/index.vue';
 import OwnerView from '@/views/owner/index.vue';
 import LocationView from '@/views/location/index.vue';
 import RulesView from '@/views/main/rule/index.vue';
+import PaymentCallback from '@/views/payment/payment-callback.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -67,6 +68,10 @@ const router = createRouter({
         {
           path: '/rules',
           component: RulesView
+        },
+        {
+          path: '/payment-callback',
+          component: PaymentCallback
         },
       ]
     },

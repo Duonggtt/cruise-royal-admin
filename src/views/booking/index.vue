@@ -148,7 +148,7 @@
                         <span v-else :class="getStatus(slotProps.data.bookingStatus) === 'Đã đặt' ? 'text-orange-500' : 'text-orange-500'">
                             {{ getStatus(slotProps.data.bookingStatus) }}
                         </span>
-                    </template>
+                    </template> 
                 </Column>
                 <Column header="Thao tác" style="width: 30%">
                 <template #body="slotProps">
@@ -156,6 +156,7 @@
                         <ConfirmPopup></ConfirmPopup>
                         <Button icon="pi pi-search" severity="success" aria-label="Search" @click="fetchBookingDetail(slotProps.data.id)"/>
                         <Button icon="pi pi-times" severity="danger" aria-label="Cancel" @click="confirm2($event, slotProps.data.id)" />
+                        <Button v-if="slotProps.data.paymentStatus == false" icon="pi pi-dollar" label="Abate" @click="getPaymentInfo(slotProps.data.id)"/>    
                     </div>
                 </template>
                 </Column>
@@ -355,6 +356,9 @@ export default {
     data() {
         return {
             state: 'default',
+            paymentAmount: 0,
+            paymentInfo: '',
+            totalPricePayment: 0,
             items: ref([
                 { label: 'Quản lý đặt vé' }, 
                 { label: 'Vé' }, 
@@ -376,6 +380,7 @@ export default {
             showBookingDetailModal: false,
             showUserSelectionDialog: false,
             showCabinSelectionDialog: false,
+            visible: false,
             cabins: [
                 {
                     id: '',
@@ -468,6 +473,76 @@ export default {
         this.fetchBookings();
     },
     methods: {
+        getTotalPriceByBookingId(bookingId: any) {
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/bookings/total-price/${bookingId}`;
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            })
+            .then(res => {
+                if (res.status === 403) {
+                    this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                    useAuthStore().logout();
+                }
+                return res;
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.totalPricePayment = data;
+            })
+        },
+        getPaymentInfo(bookingId: any) {
+            this.getTotalPriceByBookingId(bookingId);
+            setTimeout(() => {
+                this.paymentAmount = this.totalPricePayment;
+                this.paymentInfo = `Thanh toan hoa don ${bookingId}`;
+                this.initiatePayment();
+            }, 1000);
+        },
+        async initiatePayment() {
+            console.log("Payment amount:", this.paymentAmount);
+            console.log("Payment info:", this.paymentInfo);
+            const access_token = localStorage.getItem('access_token');
+            const url = `${api_url}/payment/create`;
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`
+                    },
+                    body: JSON.stringify({
+                        amount: this.paymentAmount, 
+                        orderInfo: this.paymentInfo
+                    })
+                });
+
+                if (res.status === 403) {
+                    this.$toast.add({ severity: 'error', summary: 'Authorization', detail: 'Phiên đăng nhập hết hạn!', life: 3000 });
+                    useAuthStore().logout();
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
+                const data = await res.text();
+                console.log("Response data:", data);
+                
+                if (data.startsWith('http://') || data.startsWith('https://')) {
+                    window.location.href = data;
+                } else {
+                    console.error("Invalid response format:", data);
+                    throw new Error("Invalid response format");
+                }
+            } catch (error) {
+                console.error("Error payment!", error);
+                this.$toast.add({ severity: 'error', summary: 'Payment', detail: 'Thanh toán thất bại!', life: 3000 });
+            }
+        },
         formatNumberAsCurrency(number: any) {
             return number.toLocaleString('vi-VN');
         },
